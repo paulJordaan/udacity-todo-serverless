@@ -1,11 +1,13 @@
 import * as AWS from 'aws-sdk'
-
+import * as AWSXRay from 'aws-xray-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { createLogger } from '../utils/logger'
 const logger = createLogger('todosAccess')
 
 import { TodoUpdate } from '../models/TodoUpdate'
 import { TodoItem } from '../models/TodoItem'
+
+const XAWS = AWSXRay.captureAWS(AWS) as any
 
 export class TodoAccess {
   constructor(
@@ -56,7 +58,8 @@ export class TodoAccess {
     var params = {
       TableName: this.todosTable,
       Key: {
-        todoId: todoId
+        todoId: todoId,
+        userId: userId
       },
       UpdateExpression:
         'SET #todo_name = :name, dueDate = :dueDate, done = :done',
@@ -84,7 +87,8 @@ export class TodoAccess {
     const params = {
       TableName: this.todosTable,
       Key: {
-        todoId: todoId
+        todoId: todoId,
+        userId: userId
       },
       ExpressionAttributeValues: {
         ':userId': userId
@@ -103,7 +107,8 @@ export class TodoAccess {
     var params = {
       TableName: this.todosTable,
       Key: {
-        todoId: todoId
+        todoId: todoId,
+        userId: userId
       },
       UpdateExpression: 'SET attachmentUrl = :attachmentUrl',
       ExpressionAttributeValues: {
@@ -124,11 +129,11 @@ export class TodoAccess {
 function createDynamoDBClient() {
   if (process.env.IS_OFFLINE) {
     console.log('Creating a local DynamoDB instance')
-    return new AWS.DynamoDB.DocumentClient({
+    return new XAWS.DynamoDB.DocumentClient({
       region: 'localhost',
       endpoint: 'http://localhost:8000'
     })
   }
 
-  return new AWS.DynamoDB.DocumentClient()
+  return new XAWS.DynamoDB.DocumentClient()
 }
