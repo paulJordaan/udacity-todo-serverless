@@ -4,6 +4,7 @@ import * as AWS from 'aws-sdk'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import * as middy from 'middy'
 import { cors } from 'middy/middlewares'
+import { addImage } from '../../businessLogic/todos'
 
 const s3 = new AWS.S3({
   signatureVersion: 'v4'
@@ -16,7 +17,15 @@ export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const todoId = event.pathParameters.todoId
 
+    const authorization = event.headers.Authorization
+    const split = authorization.split(' ')
+    const jwtToken = split[1]
+
     const url = getUploadUrl(todoId)
+
+    console.log('Presigned URL', url)
+
+    await addImage(todoId, jwtToken)
 
     return {
       statusCode: 200,

@@ -48,3 +48,12 @@ export async function deleteTodo(
 
   return await todoAccess.deleteTodo(todoId, userId)
 }
+
+export async function addImage(
+  todoId: string,
+  jwtToken: string
+): Promise<void> {
+  const userId = parseUserId(jwtToken)
+
+  return await todoAccess.addImage(todoId, userId)
+}
